@@ -7,9 +7,12 @@
 
 // GitHub raw links
 #define VERSION_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/refs/heads/master/esp32_codes/remote_firware_update/version.txt"
-#define FIRMWARE_URL "https://github.com/mayank-verma627/fostride/blob/master/esp32_codes/remote_firware_update/remote_firware_update.ino.esp32.bin"
+#define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/remote_firware_update/remote_firware_update.ino.esp32.bin"
 
-String currentVersion = "1.0.2";  // Version in current firmware
+#define led 23
+#define val 1000
+
+String currentVersion = "1.0.3";  // Version in current firmware
 
 void setup() {
   Serial.begin(115200);
@@ -26,10 +29,29 @@ void setup() {
   } else {
     Serial.println("No update needed.");
   }
+
+  pinMode(led, OUTPUT);
 }
 
 void loop() {
   // Normal operation code here
+  digitalWrite(led, HIGH);
+  delay(val);
+  digitalWrite(led, LOW);
+  delay(val);
+  
+  if (checkForUpdate()) {
+    Serial.println("New version found! Starting OTA...");
+    if (performOTA()) {
+      Serial.println("Update successful! Rebooting...");
+      ESP.restart();
+    } else {
+      Serial.println("Update failed!");
+    }
+  } else {
+    Serial.println("No update needed.");
+  }
+ 
 }
 
 void connectToWiFi() {
