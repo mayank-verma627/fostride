@@ -10,9 +10,9 @@
 #define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/remote_firware_update/remote_firware_update.ino.esp32.bin"
 
 #define led 23
-#define val 1000
+#define val 250
 
-String currentVersion = "1.0.3";  // Version in current firmware
+String currentVersion = "1.0.4";  // Version in current firmware
 
 void setup() {
   Serial.begin(115200);
@@ -93,31 +93,37 @@ bool performOTA() {
     WiFiClient *client = http.getStreamPtr();
 
     if (contentLength > 0) {
+      Serial.println("Content-Length: " + String(contentLength));
       if (!Update.begin(contentLength)) {
         Serial.println("Not enough space for OTA");
         return false;
       }
-      size_t written = Update.writeStream(*client);
-      if (written == contentLength) {
-        Serial.println("OTA written: " + String(written));
-      } else {
-        Serial.println("OTA write mismatch: " + String(written) + " / " + String(contentLength));
+    } else {
+      Serial.println("No Content-Length header, starting OTA with unknown size");
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Serial.println("Not enough space for OTA");
         return false;
       }
-      if (Update.end()) {
-        if (Update.isFinished()) {
-          Serial.println("Update successful");
-          return true;
-        } else {
-          Serial.println("Update not finished");
-          return false;
-        }
+    }
+
+    size_t written = Update.writeStream(*client);
+    if (written > 0) {
+      Serial.println("OTA written: " + String(written));
+    } else {
+      Serial.println("OTA write failed");
+      return false;
+    }
+
+    if (Update.end()) {
+      if (Update.isFinished()) {
+        Serial.println("Update successful");
+        return true;
       } else {
-        Serial.println("Update error: " + String(Update.getError()));
+        Serial.println("Update not finished");
         return false;
       }
     } else {
-      Serial.println("Invalid content length");
+      Serial.println("Update error: " + String(Update.getError()));
       return false;
     }
   } else {
