@@ -2,12 +2,12 @@
 #include <HTTPClient.h>
 #include <Update.h>
 
-#define WIFI_SSID      "YOUR_WIFI_SSID"
-#define WIFI_PASSWORD  "YOUR_WIFI_PASSWORD"
+#define WIFI_SSID      "Esp32"
+#define WIFI_PASSWORD  "mayank@627"
 
 // GitHub raw links
-#define VERSION_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/R3Bin_mark1/version.txt"
-#define FIRMWARE_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/R3Bin_mark1/R3bin.bin"
+#define VERSION_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/remote_firware_update/version.txt"
+#define FIRMWARE_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/remote_firware_update/remote_firware_update.bin"
 
 String currentVersion = "1.0.0";  // Version in current firmware
 
