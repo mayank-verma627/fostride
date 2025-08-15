@@ -10,9 +10,9 @@
 #define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/remote_firware_update/remote_firware_update.ino.esp32.bin"
 
 #define led 23
-#define val 250
+#define val 100
 
-String currentVersion = "1.0.4";  // Version in current firmware
+String currentVersion = "1.0.5";  // Version in current firmware
 
 void setup() {
   Serial.begin(115200);
