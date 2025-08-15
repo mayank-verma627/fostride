@@ -9,7 +9,7 @@
 #define VERSION_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/refs/heads/master/esp32_codes/remote_firware_update/version.txt"
 #define FIRMWARE_URL "https://github.com/mayank-verma627/fostride/blob/master/esp32_codes/remote_firware_update/remote_firware_update.ino.esp32.bin"
 
-String currentVersion = "1.0.1";  // Version in current firmware
+String currentVersion = "1.0.2";  // Version in current firmware
 
 void setup() {
   Serial.begin(115200);
