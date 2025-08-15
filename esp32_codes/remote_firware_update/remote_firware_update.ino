@@ -6,7 +6,7 @@
 #define WIFI_PASSWORD  "mayank@627"
 
 // GitHub raw links
-#define VERSION_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/remote_firware_update/version.txt"
+#define VERSION_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/refs/heads/master/esp32_codes/remote_firware_update/version.txt"
 #define FIRMWARE_URL "https://github.com/mayank-verma627/fostride/tree/master/esp32_codes/remote_firware_update/remote_firware_update.bin"
 
 String currentVersion = "1.0.0";  // Version in current firmware
