@@ -1,4 +1,3 @@
-//version 1.1.0
 
 
 #include <WiFi.h>
@@ -283,9 +282,15 @@ bool checkForUpdate() {
   if (httpCode == 200) {
     String newVersion = http.getString();
     newVersion.trim();
-    Serial.println("Latest version: " + newVersion);
+
+    Serial.println("Local version: " + currentVersion);
+    Serial.println("Latest version on server: " + newVersion);
+
     if (newVersion != currentVersion) {
+      Serial.println("Update required!");
       return true;
+    } else {
+      Serial.println("Already on latest version.");
     }
   } else {
     Serial.println("Version check failed, HTTP code: " + String(httpCode));
@@ -293,6 +298,7 @@ bool checkForUpdate() {
   http.end();
   return false;
 }
+
 
 
 
