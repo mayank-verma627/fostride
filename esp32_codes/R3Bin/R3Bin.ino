@@ -1,13 +1,4 @@
-
-
-#include "BluetoothSerial.h"  // Built-in library
-
-
-//Error 100- Failed to start Serial2 with R pi 
-//Error 101- Failed UltraSonic Sensor
-
-
-
+//version 1.1.0
 
 #include <AccelStepper.h>
 #include <MultiStepper.h>
@@ -15,34 +6,39 @@
 #include <Wire.h>
 #include <Adafruit_VL53L0X.h>
 
-#define TRIG_PIN 34
-#define ECHO_PIN 35
-
+///////////i2c with lidar/////////////////
 #define SDA_PIN 21
 #define SCL_PIN 22
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 
-#define ena 26
-#define enb 36
-
 const float THRESHOLD_CM = 25.0;
+///////////////////////////////////////////
 
+/////uart 2 for r pi///////////////////////
 #define ESP32_RX2 16
 #define ESP32_TX2 17
+///////////////////////////////////////////
 
-#define PUL_PIN 34
-#define DIR_PIN 39
+/////metallic sensor pinouts//////////////////
+#define metal 4
+////////////////////////////////////////////////
 
-#define PUL_PIN2 27 
-#define DIR_PIN2 25
+/////////stepper motor driver//////////////
+#define ena 26
+#define enb 33
 
-#define metal1 4
-#define metal2 12
+#define PUL_PIN 25
+#define DIR_PIN 27
 
-#define delay_ms 500
-#define delay_ms2 1500
+#define PUL_PIN2 35 
+#define DIR_PIN2 32
+
 AccelStepper motor1(AccelStepper::DRIVER, PUL_PIN, DIR_PIN);
 AccelStepper motor2(AccelStepper::DRIVER, PUL_PIN2, DIR_PIN2);
+///////////////////////////////////////////
+
+#define delay_ms 500  //delay between vertical tilt of the plate
+#define delay_ms2 1500  //delay between the rotationof the plate after the complete motion
 
 void setup() {
   // put your setup code here, to run once:
@@ -57,9 +53,6 @@ void setup() {
   pinMode(enb, OUTPUT);
   digitalWrite(ena , HIGH);
   digitalWrite(enb, HIGH);
-  
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
 
   pinMode(PUL_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
@@ -67,87 +60,27 @@ void setup() {
   pinMode(PUL_PIN2, OUTPUT);
   pinMode(DIR_PIN2, OUTPUT);
 
-  Wire.begin(SDA_PIN, SCL_PIN);
-
- 
-
+  pinMode(metal, INPUT);
   
-  if (!lox.begin()) {
-    Serial.println("Failed to boot VL53L0X. Check wiring.");
-   // while (1);
-  }
-  Serial.println("VL53L0X ready");
-
-
-  /*motor1.setMaxSpeed(15000);  //for high speed 
-  motor1.setAcceleration(10000);
-
-  motor2.setMaxSpeed(15000);
-  motor2.setAcceleration(10000);*/
+  
+  Wire.begin(SDA_PIN, SCL_PIN);
 
   motor1.setMaxSpeed(6000); //for slow speed
   motor1.setAcceleration(3000);
 
   motor2.setMaxSpeed(6000);
   motor2.setAcceleration(3000);
-  //checkComponents();
-  pinMode(metal1, INPUT);
-  pinMode(metal2, INPUT);
+
   Serial.println("Bin Ready To Use");
-  
+
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //test();
-    if(digitalRead(metal1)>0 || digitalRead(metal2)>0){
-      digitalWrite(ena , LOW);
-      digitalWrite(enb, LOW);
-      Serial.print(digitalRead(metal1));Serial.print("||");
-      Serial.print(digitalRead(metal2));Serial.println();
-      differential_control(3);
-      digitalWrite(ena , HIGH);
-  digitalWrite(enb, HIGH);
-    }
-    
-  if(lidar()==true){
-    digitalWrite(ena , LOW);
-      digitalWrite(enb, LOW);
-    Serial.println("object detected");
-    Serial2.println(true);
-    delay(500);
-    while(Serial2.available()){
-      int received = Serial2.parseInt();      //received=received-48;
-      int a=convert(received);
-      delay(30);
-      Serial.print("We received: ");Serial.print(received);Serial.print("||");Serial.print(a);Serial.println();
-      
-    differential_control(a);
-    
-      //delay(1000);
-    
-  }
-  }
-  else{
-    digitalWrite(ena , HIGH);
-  digitalWrite(enb, HIGH);
-    Serial2.println(false);
-  }
+  test();
 }
 
-int convert(int a){
-  int val;
-  if(a>10){
-    val=a%10;
-  }
-  else{
-    val=a;
-  }
-  return val;
-}
-
-
-
+//////////to sense the incoming of the waste using lidar at a threshold/////////
 bool lidar(){
   bool flag;
   VL53L0X_RangingMeasurementData_t measure;
@@ -168,7 +101,23 @@ bool lidar(){
 
   return flag;
 }
+//////////////////////////////////////////////////////////////////////////
 
+
+//////////to filter the incoming data from the r pi////////////
+int convert(int a){
+  int val;
+  if(a>10){
+    val=a%10;
+  }
+  else{
+    val=a;
+  }
+  return val;
+}
+/////////////////////////////////////////////////////////////////
+
+///////////moving the plates to different bins////////////////////
 void differential_control(int value){
   if(value==1){
     Serial.println("Bin 1");
@@ -245,9 +194,11 @@ void moveBoth(int steps) {
     motor2.run();
   }
 }
+//////////////////////////////////////////////////////////////////////////
 
+//////to test the working of the motors//////////////////////////////
 void test(){
-  digitalWrite(ena, LOW);
+  digitalWrite(ena,LOW);
   digitalWrite(enb, LOW);
   differential_control(1);
   delay(2000);
@@ -258,3 +209,4 @@ void test(){
   differential_control(4);
   delay(2000);
 }
+///////////////////////////////////////////////////////////////////////

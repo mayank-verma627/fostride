@@ -1,36 +1,57 @@
-#include <SoftwareSerial.h>
+// ESP32 GSM SIM900A SMS Send/Receive Example
+// Using Serial2 (Hardware UART)
 
-// Define RX and TX pins for SoftwareSerial
-SoftwareSerial SIM900A(7, 8); // RX = Pin 7, TX = Pin 8
+#define RXD2 16   // ESP32 RX pin connected to SIM900A TX
+#define TXD2 17   // ESP32 TX pin connected to SIM900A RX
 
 void setup() {
-  // Initialize serial communication
-  Serial.begin(115200); // For communication with the PC
-  SIM900A.begin(9600); // For communication with the SIM900A module
+  Serial.begin(115200);      // Serial Monitor
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2); // Serial2 for SIM900A
 
-  // Wait for the module to initialize
-  delay(1000);
-  Serial.println("Initializing SIM900A...");
-
-  // Send AT command to check module response
-  SIM900A.println("AT");
-  delay(1000);
-  while (SIM900A.available()) {
-    Serial.write(SIM900A.read()); // Print module response to Serial Monitor
-  }
-
-  // Send SMS command
-  SIM900A.println("AT+CMGF=1"); // Set SMS mode to text
-  delay(1000);
-  SIM900A.println("AT+CMGS=\"+919082604406\""); // Replace with recipient's phone number
-  delay(1000);
-  SIM900A.println("Hello, this is a test SMS from SIM900A!"); // SMS content
-  delay(1000);
-  SIM900A.write(26); // Send Ctrl+Z to send the SMS
-  delay(1000);
-  Serial.println("SMS sent!");
+  Serial.println("SIM900A Ready");
+  delay(100);
+  Serial.println("Type s to send message or r to receive message");
 }
 
 void loop() {
-  // No actions in the loop
+  // Handle Serial Monitor input
+  if (Serial.available() > 0) {
+    char cmd = Serial.read();
+    if (cmd == 's') {
+      sendMessage();
+    } 
+    else if (cmd == 'r') {
+      receiveMessage();
+    }
+  }
+
+  // Forward data from SIM900A to Serial Monitor
+  if (Serial2.available() > 0) {
+    Serial.write(Serial2.read());
+  }
+}
+
+void sendMessage() {
+  Serial.println("Sending Message...");
+  Serial2.println("AT+CMGF=1");    // Text mode
+  delay(1000);
+
+  Serial2.println("AT+CMGS=\"+919082604406\""); // Replace with recipient's number
+  delay(1000);
+
+  Serial2.println("Good morning, how are you doing?"); // Message text
+  delay(500);
+
+  Serial2.write(26); // CTRL+Z
+  delay(2000);
+
+  Serial.println("Message sent!");
+}
+
+void receiveMessage() {
+  Serial.println("Reading SMS...");
+  delay(1000);
+  Serial2.println("AT+CNMI=2,2,0,0,0"); // Live SMS display
+  delay(1000);
+  Serial.println("Unread Message check done.");
 }
