@@ -1,5 +1,19 @@
 //version 1.1.0
 
+
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <Update.h>
+
+#define WIFI_SSID      "Esp32"
+#define WIFI_PASSWORD  "mayank@627"
+
+// GitHub raw links
+#define VERSION_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/refs/heads/master/esp32_codes/R3Bin/version_R3Bin.txt"
+#define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/R3Bin/remote_firware_update.ino.esp32.bin"
+
+String currentVersion = "1.0.0";  // Version in current firmware
+
 #include <AccelStepper.h>
 #include <MultiStepper.h>
 
@@ -40,11 +54,23 @@ AccelStepper motor2(AccelStepper::DRIVER, PUL_PIN2, DIR_PIN2);
 #define delay_ms 500  //delay between vertical tilt of the plate
 #define delay_ms2 1500  //delay between the rotationof the plate after the complete motion
 
+int currentLocation=1;
+
+
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+
+  connectToWiFi();
+
+  RemoteUpdate();
+  
   Serial.println("Welcome to R3Bin");
-  delay(1000);
+  Serial.println("Version: ");
+  Serial.print(currentVersion);
+  
+  delay(5000);
   Serial.println("Bin Setting Up....Please Wait");
   delay(1000);
   Serial2.begin(115200, SERIAL_8N1, ESP32_RX2, ESP32_TX2);
@@ -78,6 +104,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   test();
+  RemoteUpdate();
 }
 
 //////////to sense the incoming of the waste using lidar at a threshold/////////
@@ -210,3 +237,112 @@ void test(){
   delay(2000);
 }
 ///////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+void connectToWiFi() {
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+}
+
+void RemoteUpdate(){
+  
+  if (checkForUpdate()) {
+    Serial.println("New version found! Starting OTA...");
+    if (performOTA()) {
+      Serial.println("Update successful! Rebooting...");
+      ESP.restart();
+    } else {
+      Serial.println("Update failed!");
+    }
+  } else {
+    Serial.println("No update needed.");
+  }
+}
+
+
+
+
+bool checkForUpdate() {
+  HTTPClient http;
+  http.begin(VERSION_URL);
+  int httpCode = http.GET();
+
+  if (httpCode == 200) {
+    String newVersion = http.getString();
+    newVersion.trim();
+    Serial.println("Latest version: " + newVersion);
+    if (newVersion != currentVersion) {
+      return true;
+    }
+  } else {
+    Serial.println("Version check failed, HTTP code: " + String(httpCode));
+  }
+  http.end();
+  return false;
+}
+
+
+
+bool performOTA() {
+  HTTPClient http;
+  http.begin(FIRMWARE_URL);
+  int httpCode = http.GET();
+
+  if (httpCode == 200) {
+    int contentLength = http.getSize();
+    WiFiClient *client = http.getStreamPtr();
+
+    if (contentLength > 0) {
+      Serial.println("Content-Length: " + String(contentLength));
+      if (!Update.begin(contentLength)) {
+        Serial.println("Not enough space for OTA");
+        return false;
+      }
+    } else {
+      Serial.println("No Content-Length header, starting OTA with unknown size");
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Serial.println("Not enough space for OTA");
+        return false;
+      }
+    }
+
+    size_t written = Update.writeStream(*client);
+    if (written > 0) {
+      Serial.println("OTA written: " + String(written));
+    } else {
+      Serial.println("OTA write failed");
+      return false;
+    }
+
+    if (Update.end()) {
+      if (Update.isFinished()) {
+        Serial.println("Update successful");
+        return true;
+      } else {
+        Serial.println("Update not finished");
+        return false;
+      }
+    } else {
+      Serial.println("Update error: " + String(Update.getError()));
+      return false;
+    }
+  } else {
+    Serial.println("Firmware download failed, HTTP code: " + String(httpCode));
+    return false;
+  }
+  http.end();
+  return false;
+}
