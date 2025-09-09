@@ -10,7 +10,7 @@
 
 // GitHub raw links
 #define VERSION_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/refs/heads/master/esp32_codes/R3Bin/version_R3Bin.txt"
-#define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/R3Bin/remote_firware_update.ino.esp32.bin"
+#define FIRMWARE_URL "https://raw.githubusercontent.com/mayank-verma627/fostride/master/esp32_codes/R3Bin/R3Bin.ino.esp32.bin"
 
 String currentVersion = "1.0.0";  // Version in current firmware
 
