@@ -1,51 +1,32 @@
 import os
 import time
 import subprocess
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
-REPO_PATH = r"C:\Users\White_devil\Desktop\fostride"  # <-- CHANGE THIS to your cloned repo path
-IDLE_TIME = 600  # 10 minutes
-
-class ChangeHandler(FileSystemEventHandler):
-    def __init__(self):
-        self.last_modified = time.time()
-    def on_any_event(self, event):
-        self.last_modified = time.time()
+# Path to your Git repository
+REPO_PATH = r"C:\Users\White_devil\Desktop\fostride"  # <-- change this
+CHECK_INTERVAL = 600  # 10 minutes in seconds
 
 def git_auto_update():
+    """Commit and push changes to GitHub if there are any."""
     os.chdir(REPO_PATH)
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    msg = f"Auto-update at {timestamp}"
-    print(f"\n[{timestamp}] ⏫ Pushing updates...")
-
-    subprocess.run(["git", "add", "."], check=False)
-    diff = subprocess.run(["git", "diff", "--cached", "--quiet"])
-    if diff.returncode != 0:
+    
+    # Check for any changes
+    diff = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+    if diff.stdout.strip():  # if output is not empty, there are changes
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        msg = f"Auto-update at {timestamp}"
+        print(f"[{timestamp}] ⏫ Changes detected. Pushing to GitHub...")
+        subprocess.run(["git", "add", "."], check=False)
         subprocess.run(["git", "commit", "-m", msg], check=False)
         subprocess.run(["git", "push"], check=False)
         subprocess.run(["git", "pull"], check=False)
         print(f"[{timestamp}] ✅ Commit & push done!\n")
     else:
-        print(f"[{timestamp}] 💤 No changes to commit.\n")
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{timestamp}] 💤 No changes detected.")
 
 if __name__ == "__main__":
-    os.chdir(REPO_PATH)
-    handler = ChangeHandler()
-    observer = Observer()
-    observer.schedule(handler, REPO_PATH, recursive=True)
-    observer.start()
-
-    print(f"📡 Watching '{REPO_PATH}' for changes...")
-    last_update = time.time()
-
-    try:
-        while True:
-            time.sleep(5)
-            now = time.time()
-            if now - handler.last_modified > IDLE_TIME and now - last_update > IDLE_TIME:
-                git_auto_update()
-                last_update = now
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    print(f"📡 Watching '{REPO_PATH}' for changes every {CHECK_INTERVAL//60} minutes...")
+    while True:
+        git_auto_update()
+        time.sleep(CHECK_INTERVAL)
