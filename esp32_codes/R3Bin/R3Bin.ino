@@ -198,26 +198,44 @@ void differential_control(int value){
 }
 
 void moveMotor1(int steps) {
-  motor1.move(steps);
-  while (motor1.distanceToGo() != 0) {
-    motor1.run();
+  if(steps<0){digitalWrite(DIR_PIN, HIGH); steps=steps*-1;}
+  else{digitalWrite(DIR_PIN, LOW);}
+  for(int i=0;i<steps;i++){
+  digitalWrite(PUL_PIN, HIGH);
+  delayMicroseconds(200);
+  digitalWrite(PUL_PIN, LOW);
+  delayMicroseconds(200);
   }
 }
 
 void moveMotor2(int steps) {
-  motor2.move(steps);
-  while (motor2.distanceToGo() != 0) {
-    motor2.run();
+  if(steps<0){digitalWrite(DIR_PIN2, HIGH); steps=steps*-1;}
+  else{digitalWrite(DIR_PIN2, LOW);}
+  for(int i=0;i<steps;i++){
+  digitalWrite(PUL_PIN2, HIGH);
+  delayMicroseconds(200);
+  digitalWrite(PUL_PIN2, LOW);
+  delayMicroseconds(200);
   }
 }
 
 void moveBoth(int steps) {
-  motor1.move(steps);
-  motor2.move(steps);
-
-  while (motor1.distanceToGo() != 0 || motor2.distanceToGo() != 0) {
-    motor1.run();
-    motor2.run();
+  if(steps<0){
+    digitalWrite(DIR_PIN, HIGH); 
+    digitalWrite(DIR_PIN2,LOW);
+    steps=steps*-1;
+    }
+  else{
+    digitalWrite(DIR_PIN, LOW);
+    digitalWrite(DIR_PIN2, HIGH);
+    }
+  for(int i=0;i<steps;i++){
+  digitalWrite(PUL_PIN, HIGH);
+  digitalWrite(PUL_PIN2, HIGH);
+  delayMicroseconds(200);
+  digitalWrite(PUL_PIN, LOW);
+  digitalWrite(PUL_PIN2, LOW);
+  delayMicroseconds(200);
   }
 }
 //////////////////////////////////////////////////////////////////////////

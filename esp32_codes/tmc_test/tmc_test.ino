@@ -1,6 +1,6 @@
-#define EN_PIN   27
-#define DIR_PIN  25
-#define STEP_PIN 26
+#define EN_PIN   33
+#define DIR_PIN  15
+#define STEP_PIN 2
 
 void setup() {
   pinMode(EN_PIN, OUTPUT);

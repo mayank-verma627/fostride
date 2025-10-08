@@ -23,23 +23,23 @@
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 
 #define ena 26
-#define enb 36
+#define enb 33
 
 const float THRESHOLD_CM = 25.0;
 
 #define ESP32_RX2 16
 #define ESP32_TX2 17
 
-#define PUL_PIN 34
-#define DIR_PIN 39
+#define PUL_PIN 27   //2 15
+#define DIR_PIN 25
 
-#define PUL_PIN2 27 
-#define DIR_PIN2 25
+#define PUL_PIN2 2 //27 25
+#define DIR_PIN2 15
 
 #define metal1 4
 #define metal2 12
 
-#define delay_ms 500
+#define delay_ms 200
 #define delay_ms2 1500
 AccelStepper motor1(AccelStepper::DRIVER, PUL_PIN, DIR_PIN);
 AccelStepper motor2(AccelStepper::DRIVER, PUL_PIN2, DIR_PIN2);
@@ -115,7 +115,7 @@ void loop() {
       digitalWrite(enb, LOW);
     Serial.println("object detected");
     Serial2.println(true);
-    delay(500);
+    delay(300);
     while(Serial2.available()){
       int received = Serial2.parseInt();      //received=received-48;
       int a=convert(received);
