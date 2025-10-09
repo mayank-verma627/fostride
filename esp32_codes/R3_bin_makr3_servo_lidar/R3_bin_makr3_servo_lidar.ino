@@ -15,8 +15,8 @@ const float THRESHOLD_CM = 25.0;
 #define ESP32_TX2 17
 
 // Servo pins
-#define SERVO_BASE_PIN 14
-#define SERVO_TILT_PIN 12
+#define SERVO_BASE_PIN 12
+#define SERVO_TILT_PIN 14
 
 Servo servoBase;
 Servo servoTilt;
