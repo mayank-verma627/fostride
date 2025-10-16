@@ -1,4 +1,7 @@
 #include <ESP32Servo.h>
+#include "BluetoothSerial.h"  // Built-in library
+
+BluetoothSerial SerialBT;
 
 // Servo pins
 #define SERVO_BASE_PIN 12
@@ -7,18 +10,6 @@
 Servo servoBase;
 Servo servoTilt;
 
-// Metal sensor pins
-#define METAL_SENSOR_PIN 15
-#define METAL_SENSOR_PIN2 39
-
-// IR sensor pin
-#define IR_SENSOR_PIN 33
-
-// Serial pins
-#define ESP32_RX2 16
-#define ESP32_TX2 17
-
-// Servo angles
 const int BASE_BIN1 = 45;
 const int BASE_BIN2 = 135;
 const int BASE_BIN3 = 45;  // bin3 doesn't rotate base
@@ -35,52 +26,33 @@ const int STEP_DELAY = 0;
 // Track current base position
 int currentBaseAngle = BASE_BIN1;
 
-void setup() {
-  Serial.begin(115200);
-  Serial2.begin(115200, SERIAL_8N1, ESP32_RX2, ESP32_TX2);
 
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  SerialBT.begin("ESP32_BT");  // Bluetooth device name
+  
+  Serial.println("Bluetooth started! Pair your phone with ESP32_BT.");
   servoBase.attach(SERVO_BASE_PIN);
   servoTilt.attach(SERVO_TILT_PIN);
 
   servoBase.write(currentBaseAngle);
   servoTilt.write(TILT_HOME);
-
-  pinMode(METAL_SENSOR_PIN, INPUT);
-  pinMode(METAL_SENSOR_PIN2, INPUT);
-  pinMode(IR_SENSOR_PIN, INPUT);
-
-  Serial.println("Bin Ready");
 }
 
 void loop() {
-  // Metal sensor trigger
-  Serial.println("Bin Ready....Put Waste");
-
-  // IR sensor trigger
-  if (digitalRead(IR_SENSOR_PIN) == LOW) {
-    Serial.println("Object detected by IR sensor -> Sending 1 to Raspberry Pi");
-    //delay(500);
-    if (digitalRead(METAL_SENSOR_PIN) == HIGH || digitalRead(METAL_SENSOR_PIN2) == HIGH) {
-    Serial.println("Metal detected -> Sending 3 to Raspberry Pi");
-    Serial2.println(3); // notify RPi
-    moveToBin(3);
-    delay(500); 
-    return;
-  }
-    Serial2.println(1); // notify RPi
-    // Wait for RPi to respond with target bin
-    while (Serial2.available() == 0);
-    int received = Serial2.parseInt();
-    int bin = convert(received);
-
-    Serial.print("Received bin from RPi: ");
-    Serial.println(bin);
-    moveToBin(bin);
+  // put your main code here, to run repeatedly:
+  if (SerialBT.available()) {
+    String incoming = SerialBT.readStringUntil('\n'); // Read until Enter
+    Serial.print("Received via BT: ");
+    Serial.println(incoming);
+    moveToBin(incoming.toInt());
     delay(500);
   }
+
 }
 
-// Move to bin
+
 void moveToBin(int bin) {
   int targetBase = currentBaseAngle;
   int targetTilt = TILT_HOME;
@@ -129,8 +101,4 @@ void moveServoSmooth(Servo &servo, int startAngle, int endAngle) {
       delay(STEP_DELAY);
     }
   }
-}
-
-int convert(int a) { 
-    return (a > 10) ? a % 10 : a; 
 }
